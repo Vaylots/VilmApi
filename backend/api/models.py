@@ -51,6 +51,17 @@ class Career(models.Model):
     def natural_key(self):
         return {"name":self.name, "id":self.id}
 
+class Comment(models.Model):
+    id = models.AutoField(primary_key=True)
+    author = models.ForeignKey("api.User", on_delete=models.CASCADE)
+    body = models.TextField()
+    publish_date = models.DateTimeField(auto_now_add=True)
+     
+    def __str__(self) -> str:
+        return f'{self.id}, {self.author}'
+    
+    def natural_key(self):
+        return {"author":self.author.userAccount.username, "body":self.body, "publish_date":self.publish_date}
 
 
 class Movie(models.Model):
@@ -74,6 +85,7 @@ class Movie(models.Model):
     time = models.IntegerField()
     trailer_file = models.FileField(
         upload_to="trailers", null=True, default=None)
+    comment = models.ManyToManyField("api.Comment")
 
     def __str__(self):
         return f"{self.name} / {self.nameRu}"
@@ -94,6 +106,9 @@ class User(models.Model):
     
     def __str__(self):
         return f"{self.userAccount.username} / {self.id}"
+    
+   
+
     
    
     

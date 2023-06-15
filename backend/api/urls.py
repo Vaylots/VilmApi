@@ -29,4 +29,5 @@ urlpatterns = [
     path("getFavorites", getFavorites.as_view()),
     path("addFavorite/", addFavorite.as_view()),
     path("removeFavorite/", removeFavorite.as_view()),
+    path("Comments", CommentController.as_view())
 ]

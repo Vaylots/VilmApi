@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from django.core import serializers
 from django.conf import settings
 from django.db.models import Q
-from .models import Movie, Person, User
+from .models import Movie, Person, User, Comment
 import json
 from django.contrib.auth.models import User as DjangoUser
 
@@ -16,6 +16,9 @@ def getUserToken(id):
         return token
     except Exception as e:
         return "error"
+    
+
+
 
 class Index(APIView):
     def get(self, request):
@@ -116,6 +119,34 @@ class getUserInfo(APIView):
                 userInfo = User.objects.filter(userAccount=request.GET.get("id"))
                 jsonUserInfo = serializers.serialize("json", userInfo,  use_natural_foreign_keys = True )
                 return HttpResponse(jsonUserInfo, content_type="application/json")
+            else: return JsonResponse({"status":"Error, it's not your account, or tokens expired"}, safe=False, status=401)
+        else:
+            return JsonResponse({"status":"Error, need a userId "}, safe=False, status = 404)
+
+class CommentController(APIView):
+    def post(self, request):
+        permission_classes = [IsAuthenticated]
+        json_data = json.loads(request.body)
+        if(json_data["authorId"]):
+            token = getUserToken(json_data["authorId"])
+            requestToken = request.headers["Authorization"].split(" ")[-1]
+            if requestToken == token:
+                try:
+                    movie = Movie.objects.get(id=json_data["movieId"])
+                    author = User.objects.get(
+                        userAccount = DjangoUser.objects.get(id=json_data["authorId"])
+                        )
+                    comment =  Comment.objects.create(
+                        author = author,
+                        body = json_data["body"]
+                    )
+                    movie.comment.add(comment)
+
+                    return JsonResponse({"status":"test"})
+
+                except Exception as e:
+             
+                    return JsonResponse({"status":"erorr"})
             else: return JsonResponse({"status":"Error, it's not your account, or tokens expired"}, safe=False, status=401)
         else:
             return JsonResponse({"status":"Error, need a userId "}, safe=False, status = 404)
